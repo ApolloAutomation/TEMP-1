@@ -274,6 +274,26 @@ sensor:
             if (x > 100) return 100;
             else return (x);
 
+  - platform: ntc
+    id: ntc_sensor
+    name: NTC Sensor
+    sensor: resistance_sensor
+    calibration:
+      b_constant: 3950
+      reference_temperature: 25°C
+      reference_resistance: 100kOhm
+
+  - platform: resistance
+    id: resistance_sensor
+    sensor: source_sensor
+    configuration: DOWNSTREAM
+    resistor: 100kOhm
+    name: Resistance Sensor
+  - platform: adc
+    pin: GPIO4
+    id: source_sensor
+    update_interval: never
+
 light:
   - platform: esp32_rmt_led_strip
     id: rgb_light
@@ -314,7 +334,7 @@ switch:
     id: factory_reset_switch
     internal: true
   - platform: gpio
-    pin: GPIO4
+    pin: GPIO6
     name: "Accessory Power"
     id: accessory_power
   - platform: template
@@ -345,6 +365,9 @@ switch:
     optimistic: true
     entity_category: "config"
 
+  - platform: gpio
+    pin: GPIO8
+    id: ntc_vcc
 
 
 script:
@@ -394,3 +417,10 @@ script:
           then:
             - rtttl.play:
                 rtttl: "return siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e;"
+
+interval:
+  - interval: 60s
+    then:
+      - switch.turn_on: ntc_vcc
+      - component.update: source_sensor
+      - switch.turn_off: ntc_vcc
