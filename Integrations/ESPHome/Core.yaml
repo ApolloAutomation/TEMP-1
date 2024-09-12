@@ -287,12 +287,15 @@ sensor:
     id: resistance_sensor
     sensor: source_sensor
     configuration: DOWNSTREAM
+    reference_voltage: 3.3V
     resistor: 100kOhm
     name: Resistance Sensor
+
   - platform: adc
     pin: GPIO4
     id: source_sensor
     update_interval: never
+    attenuation: auto
 
 light:
   - platform: esp32_rmt_led_strip
@@ -419,8 +422,10 @@ script:
                 rtttl: "return siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e;"
 
 interval:
-  - interval: 60s
+  - interval: 10s
     then:
       - switch.turn_on: ntc_vcc
+      - delay: 1s
       - component.update: source_sensor
+      - delay: 1s
       - switch.turn_off: ntc_vcc
