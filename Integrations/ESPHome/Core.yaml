@@ -1,6 +1,9 @@
 substitutions:
   version: "25.3.5.1"
-
+  temp_probe_1_address: "0x7000000fee347228"
+  temp_probe_2_address: "0x1000000ff5647128"
+  temp_probe_3_address: "0x6400000fc6245428"
+  temp_probe_4_address: "0xb300000ff4f7bc28"
 esp32:
   board: esp32-c3-devkitm-1
   framework:
@@ -249,6 +252,37 @@ binary_sensor:
                   id(deep_sleep_1).allow_deep_sleep();
 
 sensor:
+  - platform: dallas_temp
+    address: ${temp_probe_1_address}
+    name: "Temperature Sensor 1"
+    id: temp_probe_1
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+
+  - platform: dallas_temp
+    address: ${temp_probe_2_address}
+    name: "Temperature Sensor 2"
+    id: temp_probe_2
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+
+  - platform: dallas_temp
+    address: ${temp_probe_3_address}
+    name: "Temperature Sensor 3"
+    id: temp_probe_3
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+
+  - platform: dallas_temp
+    address: ${temp_probe_4_address}
+    name: "Temperature Sensor 4"
+    id: temp_probe_4
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
   - platform: internal_temperature
     name: "ESP Temperature"
     id: sys_esp_temperature
