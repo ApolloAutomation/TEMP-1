@@ -1,3 +1,6 @@
+substitutions:
+  source_sensor_resistance: 100kOhm
+
 esphome:
   name: "apollo-temp-1"
   friendly_name: Apollo TEMP-1
@@ -125,4 +128,4 @@ logger:
 packages:
   core: !include Core.yaml
   nonbattery: !include NonBattery.yaml
-  100Resistance: !include 100Resistance.yaml
+  resistance: !include Resistance.yaml

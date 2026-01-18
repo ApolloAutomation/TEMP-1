@@ -1,3 +1,6 @@
+substitutions:
+  source_sensor_resistance: 100kOhm
+
 esphome:
   name: "apollo-temp-1bble"
   friendly_name: Apollo TEMP-1BBLE
@@ -99,4 +102,4 @@ esp32_ble_tracker:
 packages:
   core: !include Core.yaml
   battery: !include Battery.yaml
-  100Resistance: !include 100Resistance.yaml
+  resistance: !include Resistance.yaml
