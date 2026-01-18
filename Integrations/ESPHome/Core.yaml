@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.01.23.1"
+  version: "26.01.18.1"
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -281,7 +281,8 @@ sensor:
               return NAN;
           }
 
-          if (id(temp_probe_select).state == "Food") {
+          auto selected_probe = id(temp_probe_select).current_option();
+          if (selected_probe == "Food") {
             return NAN;
           }
 
@@ -340,7 +341,8 @@ sensor:
     filters:
       - lambda: |-
           // If the Dallas sensor is selected, return NaN (not a number)
-          if (id(temp_probe_select).state == "Temperature") {
+          auto selected_probe = id(temp_probe_select).current_option();
+          if (selected_probe == "Temperature") {
             return NAN; // Override with NaN
           }
           // Otherwise, subtract the temperature offset
@@ -515,7 +517,7 @@ script:
     then:
       - lambda: |-
           // Determine the selected temperature probe
-          std::string selected_probe = id(temp_probe_select).state.c_str();
+          auto selected_probe = id(temp_probe_select).current_option();
           float current_temp;
 
           if (selected_probe == "Temperature") {
