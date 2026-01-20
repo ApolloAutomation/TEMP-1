@@ -369,6 +369,11 @@ sensor:
     attenuation: 12db
     accuracy_decimals: 3
     samples: 5
+    filters:
+      - clamp:
+          # avoid reporting -57°C when the probe is disconnected
+          min_value: 0.001
+          ignore_out_of_range: true
 
 light:
   - platform: esp32_rmt_led_strip
