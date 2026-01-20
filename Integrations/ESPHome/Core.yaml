@@ -361,10 +361,8 @@ sensor:
     id: source_sensor
     update_interval: never
     attenuation: 12db
-    filters:
-      - sliding_window_moving_average:
-          window_size: 3
-          send_every: 3
+    accuracy_decimals: 3
+    samples: 5
 
 light:
   - platform: esp32_rmt_led_strip
@@ -599,7 +597,7 @@ script:
                     id: rgb_light
 
 interval:  
-  - interval: 1s    
+  - interval: 3s
     then:      
       - if:          
           condition:            
