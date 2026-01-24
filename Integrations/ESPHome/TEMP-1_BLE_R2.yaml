@@ -40,7 +40,7 @@ esphome:
                 condition:
                   - lambda: |-
                       // Determine the selected probe
-                      std::string selected_probe = id(temp_probe_select).state.c_str();
+                      auto selected_probe = id(temp_probe_select).current_option();
                       float current_temp;
 
                       if (selected_probe == "Temperature") {
