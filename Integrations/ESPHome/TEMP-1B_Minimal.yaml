@@ -1,3 +1,6 @@
+substitutions:
+  source_sensor_resistance: 100kOhm
+
 esphome:
   name: "apollo-temp-1b-minimal"
   friendly_name: Apollo TEMP-1B Minimal
@@ -96,4 +99,4 @@ logger:
 packages:
   core: !include Core.yaml
   battery: !include Battery.yaml
-  100Resistance: !include 100Resistance.yaml
+  resistance: !include Resistance.yaml

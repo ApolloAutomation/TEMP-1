@@ -4,7 +4,7 @@ sensor:
     sensor: source_sensor
     configuration: UPSTREAM
     reference_voltage: 3.3V
-    resistor: 100kOhm
+    resistor: ${source_sensor_resistance}
     name: Resistance Sensor
     internal: true
     accuracy_decimals: 4
