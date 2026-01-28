@@ -9,6 +9,12 @@ esp32:
       assertion_level: SILENT
       enable_lwip_assert: false
 
+esphome:
+  on_boot:
+    priority: 500
+    then:
+      - script.execute: configureSourceSensorPolling
+
 api:
   services:
     - service: play_buzzer
@@ -361,10 +367,13 @@ sensor:
     id: source_sensor
     update_interval: never
     attenuation: 12db
+    accuracy_decimals: 3
+    samples: 5
     filters:
-      - sliding_window_moving_average:
-          window_size: 3
-          send_every: 3
+      - clamp:
+          # avoid reporting -57°C when the probe is disconnected
+          min_value: 0.001
+          ignore_out_of_range: true
 
 light:
   - platform: esp32_rmt_led_strip
@@ -440,6 +449,8 @@ switch:
     entity_category: "config"
     setup_priority: 1100
     internal: true
+    on_state:
+      - script.execute: configureSourceSensorPolling
 
   - platform: template
     name: "Alarm Outside Temp Range"
@@ -477,6 +488,25 @@ switch:
 
 
 script:
+  - id: configureSourceSensorPolling
+    then:
+      - if:
+          condition:
+            - switch.is_on: sensor_selector
+          then:
+            - component.suspend:
+                id: source_sensor
+            - logger.log:
+                format: "Stopped polling NTC"
+                tag: "gpio7"
+          else:
+            - component.resume:
+                id: source_sensor
+                update_interval: 3s
+            - logger.log:
+                format: "Started polling NTC"
+                tag: "gpio7"
+
   - id: statusCheck
     then:
       - if:
@@ -598,11 +628,3 @@ script:
                 - light.turn_off:
                     id: rgb_light
 
-interval:  
-  - interval: 1s    
-    then:      
-      - if:          
-          condition:            
-            - switch.is_off: sensor_selector          
-          then:            
-            - component.update: source_sensor
