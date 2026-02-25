@@ -487,6 +487,12 @@ switch:
     disabled_by_default: true
 
 
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+
 script:
   - id: configureSourceSensorPolling
     then:
