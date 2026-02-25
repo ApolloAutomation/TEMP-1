@@ -492,6 +492,16 @@ text_sensor:
     ip_address:
       name: "IP Address"
       id: wifi_ip
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    lambda: |-
+      return {"${version}"};
+    entity_category: "diagnostic"
 
 script:
   - id: configureSourceSensorPolling
