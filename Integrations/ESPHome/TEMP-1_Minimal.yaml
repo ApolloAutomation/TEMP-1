@@ -6,9 +6,6 @@ esphome:
   friendly_name: Apollo TEMP-1 Minimal
   comment: Apollo TEMP-1 Minimal
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.TEMP-1_Minimal"
     version: "${version}"
@@ -88,6 +85,7 @@ safe_mode:
 
 web_server:
   port: 80
+  version: 3
 
 wifi:
   id: wifi_1

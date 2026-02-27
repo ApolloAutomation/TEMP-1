@@ -8,9 +8,6 @@ esphome:
   friendly_name: Apollo TEMP-1_Beta
   comment: Apollo TEMP-1_Beta
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.TEMP-1_Beta"
     version: "${version}"
@@ -86,18 +83,14 @@ safe_mode:
 
 wifi:
   id: wifi_1
-  on_connect:
-    - delay: 5s
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
   ap:
     ssid: "Apollo TEMP1 Hotspot"
 
 logger:
 
 esp32:
-  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  flash_size: 4MB
   framework:
     type: esp-idf
     advanced:
@@ -105,8 +98,8 @@ esp32:
       enable_lwip_assert: false
 
 api:
-  services:
-    - service: play_buzzer
+  actions:
+    - action: play_buzzer
       variables:
         song_str: string
       then:
@@ -153,6 +146,7 @@ captive_portal:
 
 web_server:
   port: 80
+  version: 3
 
 external_components:
   - source: github://ApolloAutomation/esphome-battery-component
