@@ -6,9 +6,6 @@ esphome:
   friendly_name: Apollo TEMP-1BBLE
   comment: Apollo TEMP-1BBLE
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.TEMP-1BBLE"
     version: "${version}"
