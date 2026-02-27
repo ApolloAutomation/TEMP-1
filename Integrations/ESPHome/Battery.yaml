@@ -51,3 +51,4 @@ script:
       - component.update: sys_esp_temperature
       - component.update: sys_uptime
       - component.update: max_17048
+      - component.update: apollo_firmware_version

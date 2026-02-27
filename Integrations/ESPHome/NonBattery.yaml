@@ -32,3 +32,4 @@ script:
       - component.update: wifi_signal_db
       - component.update: sys_esp_temperature
       - component.update: sys_uptime
+      - component.update: apollo_firmware_version
