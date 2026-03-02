@@ -106,7 +106,7 @@ number:
     min_value: -70.0
     max_value: 70.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -120,7 +120,7 @@ number:
     min_value: -70.0
     max_value: 70.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -149,7 +149,7 @@ number:
     min_value: -70.0
     max_value: 70.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -164,7 +164,7 @@ number:
     min_value: -55.0
     max_value: 300.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -178,7 +178,7 @@ number:
     min_value: -55.0
     max_value: 125.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -192,7 +192,7 @@ number:
     min_value: -55.0
     max_value: 125.0
     entity_category: "CONFIG"
-    unit_of_measurement: "캜"
+    unit_of_measurement: "째C"
     optimistic: true
     update_interval: never
     step: 0.1
@@ -343,7 +343,7 @@ sensor:
     sensor: resistance_sensor
     calibration:
       b_constant: 3950
-      reference_temperature: 25캜
+      reference_temperature: 25째C
       reference_resistance: 100kOhm
     filters:
       - lambda: |-
@@ -372,7 +372,7 @@ sensor:
     samples: 5
     filters:
       - clamp:
-          # avoid reporting -57캜 when the probe is disconnected
+          # avoid reporting -57째C when the probe is disconnected
           min_value: 0.001
           ignore_out_of_range: true
 
@@ -646,3 +646,4 @@ script:
                     blue: 0%
                 - light.turn_off:
                     id: rgb_light
+
