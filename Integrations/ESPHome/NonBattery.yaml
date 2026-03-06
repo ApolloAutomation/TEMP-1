@@ -32,6 +32,3 @@ script:
       - component.update: wifi_signal_db
       - component.update: sys_esp_temperature
       - component.update: sys_uptime
-      - text_sensor.template.publish:
-          id: apollo_firmware_version
-          state: "${version}"
