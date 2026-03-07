@@ -70,6 +70,11 @@ esphome:
                         then:
                         - deep_sleep.enter:
                             id: deep_sleep_1
+    - priority: 500
+      then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
     - priority: -500
       then:
         - switch.turn_on: accessory_power
