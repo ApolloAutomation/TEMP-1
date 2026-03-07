@@ -16,6 +16,9 @@ esphome:
   on_boot:
     priority: 500
     then:
+      - text_sensor.template.publish:
+          id: apollo_firmware_version
+          state: "${version}"
       - switch.turn_on: accessory_power
       - lambda: |-
           id(deep_sleep_1).set_run_duration(id(deep_sleep_run_duration).state * 1000);
