@@ -75,7 +75,9 @@ esphome:
                   
       
   on_shutdown:
-    - light.turn_off: rgb_light
+    - light.turn_off:
+        id: rgb_light
+        transition_length: 0ms
 
 logger:
 

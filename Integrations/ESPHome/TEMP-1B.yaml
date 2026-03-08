@@ -83,7 +83,9 @@ esphome:
               - lambda: "id(testScript).execute();"
                   
   on_shutdown:
-    - light.turn_off: rgb_light
+    - light.turn_off:
+        id: rgb_light
+        transition_length: 0ms
 
 dashboard_import:
   package_import_url: github://ApolloAutomation/TEMP-1/Integrations/ESPHome/TEMP-1B_Minimal.yaml
