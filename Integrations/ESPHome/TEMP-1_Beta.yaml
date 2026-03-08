@@ -55,16 +55,16 @@ esphome:
                           - binary_sensor.is_off: ota_mode
                           - switch.is_off: prevent_sleep
                       then:
-                      - light.turn_off: rgb_light
-                      - delay: 50ms
+                      - light.turn_off:
+                          id: rgb_light
+                          transition_length: 0ms
+                      - delay: 200ms
                       - switch.turn_off: accessory_power
                       - deep_sleep.enter:
                           id: deep_sleep_1
 
   on_shutdown:
-    - light.turn_off:
-        id: rgb_light
-        transition_length: 0ms
+    - light.turn_off: rgb_light
     - switch.turn_off: accessory_power
 
 dashboard_import:
@@ -130,8 +130,10 @@ api:
                 condition:
                   switch.is_on: sleep_after_connecting
                 then:
-                  - light.turn_off: rgb_light
-                  - delay: 50ms
+                  - light.turn_off:
+                      id: rgb_light
+                      transition_length: 0ms
+                  - delay: 200ms
                   - switch.turn_off: accessory_power
                   - deep_sleep.enter:
                       id: deep_sleep_1
