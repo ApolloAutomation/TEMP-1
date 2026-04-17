@@ -1,11 +1,11 @@
+substitutions:
+  source_sensor_resistance: 100kOhm
+
 esphome:
   name: "apollo-temp-1b-minimal"
   friendly_name: Apollo TEMP-1B Minimal
   comment: Apollo TEMP-1B Minimal
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.TEMP-1B_Minimal"
     version: "${version}"
@@ -14,6 +14,9 @@ esphome:
   on_boot:
     priority: 500
     then:
+      - text_sensor.template.publish:
+          id: apollo_firmware_version
+          state: "${version}"
       - lambda: |-
           id(deep_sleep_1).set_sleep_duration(id(deep_sleep_sleep_duration).state * 60 * 60 * 1000);
       - if:
@@ -40,7 +43,7 @@ esphome:
                 condition:
                   - lambda: |-
                       // Determine the selected probe
-                      std::string selected_probe = id(temp_probe_select).state.c_str();
+                      auto selected_probe = id(temp_probe_select).current_option();
                       float current_temp;
 
                       if (selected_probe == "Temperature") {
@@ -85,6 +88,7 @@ ota:
 
 web_server:
   port: 80
+  version: 3
 
 wifi:
   id: wifi_1
@@ -96,4 +100,4 @@ logger:
 packages:
   core: !include Core.yaml
   battery: !include Battery.yaml
-  100Resistance: !include 100Resistance.yaml
+  resistance: !include Resistance.yaml

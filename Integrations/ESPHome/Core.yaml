@@ -1,17 +1,24 @@
 substitutions:
-  version: "25.11.20.1"
+  version: "26.3.2.1"
 
 esp32:
-  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  flash_size: 4MB
   framework:
     type: esp-idf
     advanced:
       assertion_level: SILENT
       enable_lwip_assert: false
 
+esphome:
+  on_boot:
+    priority: 500
+    then:
+      - script.execute: configureSourceSensorPolling
+
 api:
-  services:
-    - service: play_buzzer
+  actions:
+    - action: play_buzzer
       variables:
         song_str: string
       then:
@@ -281,7 +288,8 @@ sensor:
               return NAN;
           }
 
-          if (id(temp_probe_select).state == "Food") {
+          auto selected_probe = id(temp_probe_select).current_option();
+          if (selected_probe == "Food") {
             return NAN;
           }
 
@@ -340,7 +348,8 @@ sensor:
     filters:
       - lambda: |-
           // If the Dallas sensor is selected, return NaN (not a number)
-          if (id(temp_probe_select).state == "Temperature") {
+          auto selected_probe = id(temp_probe_select).current_option();
+          if (selected_probe == "Temperature") {
             return NAN; // Override with NaN
           }
           // Otherwise, subtract the temperature offset
@@ -359,10 +368,13 @@ sensor:
     id: source_sensor
     update_interval: never
     attenuation: 12db
+    accuracy_decimals: 3
+    samples: 5
     filters:
-      - sliding_window_moving_average:
-          window_size: 3
-          send_every: 3
+      - clamp:
+          # avoid reporting -57°C when the probe is disconnected
+          min_value: 0.001
+          ignore_out_of_range: true
 
 light:
   - platform: esp32_rmt_led_strip
@@ -438,6 +450,8 @@ switch:
     entity_category: "config"
     setup_priority: 1100
     internal: true
+    on_state:
+      - script.execute: configureSourceSensorPolling
 
   - platform: template
     name: "Alarm Outside Temp Range"
@@ -474,7 +488,42 @@ switch:
     disabled_by_default: true
 
 
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+      entity_category: "diagnostic"
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    update_interval: never
+    entity_category: "diagnostic"
+
 script:
+  - id: configureSourceSensorPolling
+    then:
+      - if:
+          condition:
+            - switch.is_on: sensor_selector
+          then:
+            - component.suspend:
+                id: source_sensor
+            - logger.log:
+                format: "Stopped polling NTC"
+                tag: "gpio7"
+          else:
+            - component.resume:
+                id: source_sensor
+                update_interval: 3s
+            - logger.log:
+                format: "Started polling NTC"
+                tag: "gpio7"
+
   - id: statusCheck
     then:
       - if:
@@ -515,7 +564,7 @@ script:
     then:
       - lambda: |-
           // Determine the selected temperature probe
-          std::string selected_probe = id(temp_probe_select).state.c_str();
+          auto selected_probe = id(temp_probe_select).current_option();
           float current_temp;
 
           if (selected_probe == "Temperature") {
@@ -596,11 +645,3 @@ script:
                 - light.turn_off:
                     id: rgb_light
 
-interval:  
-  - interval: 1s    
-    then:      
-      - if:          
-          condition:            
-            - switch.is_off: sensor_selector          
-          then:            
-            - component.update: source_sensor

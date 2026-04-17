@@ -1,102 +1,15 @@
+substitutions:
+  source_sensor_resistance: 3.3kOhm
+
+packages:
+  TEMP_1B_BLE: !include "TEMP-1B_BLE.yaml"
+
 esphome:
   name: "apollo-temp-1bble-r2"
-  friendly_name: Apollo TEMP-1BBLE
-  comment: Apollo TEMP-1BBLE
-  name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "Apollo.TEMP-1BBLE_R2"
     version: "${version}"
 
-  min_version: 2025.11.0
-  on_boot:
-    priority: 800
-    then:
-      - lambda: |-
-          id(deep_sleep_1).set_sleep_duration(id(deep_sleep_sleep_duration).state * 60 * 1000);
-      - if:
-          condition:
-            or:
-              - binary_sensor.is_on: ota_mode
-              - switch.is_on: prevent_sleep
-          then:
-             - lambda: |- 
-                ESP_LOGW("Apollo", "Preventing Deep Sleep Due To OTA On Boot");
-                id(deep_sleep_1).prevent_deep_sleep(); 
-
-      - if:
-          condition:
-            switch.is_on: notify_only_outside_temp_difference
-          then:
-            - logger.log: "Apollo Automation: Notify Only Outside Temp Difference"
-            - switch.turn_on: accessory_power
-            - delay: 5s
-            - lambda: |-
-                id(reportAllValues).execute();
-            - delay: 5s          
-            - if: # Check If Temp Probe Is Outside Threshold
-                condition:
-                  - lambda: |-
-                      // Determine the selected probe
-                      std::string selected_probe = id(temp_probe_select).state.c_str();
-                      float current_temp;
-
-                      if (selected_probe == "Temperature") {
-                        current_temp = id(temp_probe).state;
-                      } else {
-                        current_temp = id(ntc_sensor).state;
-                      }
-
-                      // Check temperature difference
-                      if (std::abs(current_temp - id(last_temp)) > id(temp_diff_threshold)->state) {
-                        return true;
-                        id(last_temp) = current_temp;
-                      } else {
-                        return false;
-                      }
-                then: # If So Then Turn On Wifi To Update
-                  - logger.log: "Apollo Automation: Outside Temp Change Detected"
-                  - lambda: |-
-                      id(last_temp) = id(temp_probe).state;
-                else: # If Not Then Check OTA And Sleep
-                  - if:
-                      condition:
-                        and:
-                          - binary_sensor.is_off: ota_mode
-                          - switch.is_off: prevent_sleep
-                      then:
-                      - deep_sleep.enter:
-                          id: deep_sleep_1
-                  
-      
-  on_shutdown:
-    - light.turn_off: rgb_light
-
-logger:
-
 dashboard_import:
   package_import_url: github://ApolloAutomation/TEMP-1/Integrations/ESPHome/TEMP-1B_BLE_R2.yaml
   import_full_config: false
-
-ota:
-  - platform: esphome
-    id: ota_esphome
-
-safe_mode:
-
-wifi:
-  ap:
-    ssid: "Apollo TEMP1 Hotspot"
-    
-bluetooth_proxy:
-  active: true
-esp32_ble_tracker:
-  scan_parameters:
-    active: false
-
-packages:
-  core: !include Core.yaml
-  battery: !include Battery.yaml
-  33resistance: !include NewResistance.yaml

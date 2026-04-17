@@ -1,11 +1,12 @@
+substitutions:
+  source_sensor_resistance: 100kOhm
+  firmware_update_manifest_url: https://apolloautomation.github.io/TEMP-1/firmware-b/manifest.json
+
 esphome:
   name: "apollo-temp-1b"
   friendly_name: Apollo TEMP-1B
   comment: Apollo TEMP-1B
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.TEMP-1B"
     version: "${version}"
@@ -14,6 +15,9 @@ esphome:
   on_boot:
     - priority: 500
       then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
         - lambda: |-
             id(deep_sleep_1).set_sleep_duration(id(deep_sleep_sleep_duration).state * 60 * 60 * 1000);
         - if:
@@ -40,7 +44,7 @@ esphome:
                   condition:
                     - lambda: |-
                         // Determine the selected probe
-                        std::string selected_probe = id(temp_probe_select).state.c_str();
+                        auto selected_probe = id(temp_probe_select).current_option();
                         float current_temp;
 
                         if (selected_probe == "Temperature") {
@@ -103,20 +107,16 @@ safe_mode:
 
 web_server:
   port: 80
-  
+  version: 3
+
 update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: https://apolloautomation.github.io/TEMP-1/firmware-b/manifest.json
+    source: ${firmware_update_manifest_url}
 
 wifi:
   id: wifi_1
-  on_connect:
-    - delay: 5s
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
   ap:
     ssid: "Apollo TEMP1B Hotspot"
 
@@ -125,4 +125,4 @@ logger:
 packages:
   core: !include Core.yaml
   battery: !include Battery.yaml
-  100Resistance: !include 100Resistance.yaml
+  resistance: !include Resistance.yaml

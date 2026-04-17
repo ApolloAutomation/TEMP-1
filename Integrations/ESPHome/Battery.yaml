@@ -27,7 +27,7 @@ number:
     id: deep_sleep_sleep_duration
     min_value: 0
     max_value: 800
-    step: 1
+    step: 0.01
     mode: box
     update_interval: never
     optimistic: true
