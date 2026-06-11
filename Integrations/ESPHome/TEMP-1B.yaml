@@ -116,6 +116,8 @@ update:
     source: ${firmware_update_manifest_url}
 
 wifi:
+  on_connect:
+    - component.update: firmware_update
   id: wifi_1
   ap:
     ssid: "Apollo TEMP1B Hotspot"
