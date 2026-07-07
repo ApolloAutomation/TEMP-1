@@ -1,6 +1,6 @@
 substitutions:
   source_sensor_resistance: 3.3kOhm
-  firmware_update_manifest_url: https://apolloautomation.github.io/TEMP-1/firmware-b2/manifest.json
+  variant_slug: "-b2"
 
 packages:
   TEMP_1B: !include "TEMP-1B.yaml"
