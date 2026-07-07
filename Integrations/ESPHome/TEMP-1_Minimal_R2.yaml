@@ -1,13 +1,14 @@
 substitutions:
+  variant_slug: "2"
   source_sensor_resistance: 3.3kOhm
 
 packages:
   TEMP_1_Minimal: !include "TEMP-1_Minimal.yaml"
 
 esphome:
-  name: "apollo-temp-1-minimalr2"
+  name: "apollo-temp-1-r2"
   project:
-    name: "Apollo.TEMP-1_Minimal_R2"
+    name: "Apollo.TEMP-1_R2"
     version: "${version}"
 
 dashboard_import:

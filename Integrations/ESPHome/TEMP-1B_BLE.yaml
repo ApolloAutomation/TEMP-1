@@ -1,4 +1,5 @@
 substitutions:
+  variant_slug: "-b"
   source_sensor_resistance: 100kOhm
 
 esphome:
@@ -86,10 +87,23 @@ dashboard_import:
 ota:
   - platform: esphome
     id: ota_esphome
+  - platform: http_request
+    id: ota_managed
+
+http_request:
+  verify_ssl: true
+
+update:
+  - platform: http_request
+    id: update_http_request
+    name: Firmware Update
+    source: ${stable_manifest_base}/firmware${variant_slug}/manifest.json
 
 safe_mode:
 
 wifi:
+  on_connect:
+    - component.update: update_http_request
   ap:
     ssid: "Apollo TEMP1 Hotspot"
     

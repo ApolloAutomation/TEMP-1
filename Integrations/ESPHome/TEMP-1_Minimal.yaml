@@ -2,12 +2,12 @@ substitutions:
   source_sensor_resistance: 100kOhm
 
 esphome:
-  name: "apollo-temp-1-minimal"
-  friendly_name: Apollo TEMP-1 Minimal
-  comment: Apollo TEMP-1 Minimal
+  name: "apollo-temp-1"
+  friendly_name: Apollo TEMP-1
+  comment: Apollo TEMP-1
   name_add_mac_suffix: true
   project:
-    name: "ApolloAutomation.TEMP-1_Minimal"
+    name: "ApolloAutomation.TEMP-1"
     version: "${version}"
 
   min_version: 2025.11.0
@@ -83,7 +83,18 @@ dashboard_import:
 ota:
   - platform: esphome
     id: ota_esphome
-    
+  - platform: http_request
+    id: ota_managed
+
+http_request:
+  verify_ssl: true
+
+update:
+  - platform: http_request
+    id: update_http_request
+    name: Firmware Update
+    source: ${stable_manifest_base}/firmware${variant_slug}/manifest.json
+
 safe_mode:
 
 web_server:
@@ -91,6 +102,8 @@ web_server:
   version: 3
 
 wifi:
+  on_connect:
+    - component.update: update_http_request
   id: wifi_1
   ap:
     ssid: "Apollo TEMP1 Hotspot"
