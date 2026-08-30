@@ -1,6 +1,7 @@
 substitutions:
   source_sensor_resistance: 100kOhm
-  firmware_update_manifest_url: https://apolloautomation.github.io/TEMP-1/firmware-b/manifest.json
+  # Firmware variant identity: drives the OTA manifest paths in Core.yaml.
+  variant_slug: "-b"
 
 esphome:
   name: "apollo-temp-1b"
@@ -100,9 +101,6 @@ ota:
   - platform: http_request
     id: ota_managed
 
-http_request:
-  verify_ssl: true
-
 safe_mode:
 
 web_server:
@@ -111,13 +109,13 @@ web_server:
 
 update:
   - platform: http_request
-    id: firmware_update
+    id: update_http_request
     name: Firmware Update
-    source: ${firmware_update_manifest_url}
+    source: ${stable_manifest_base}/firmware${variant_slug}/manifest.json
 
 wifi:
   on_connect:
-    - component.update: firmware_update
+    - component.update: update_http_request
   id: wifi_1
   ap:
     ssid: "Apollo TEMP1B Hotspot"

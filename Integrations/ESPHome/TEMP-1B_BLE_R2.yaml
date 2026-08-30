@@ -1,4 +1,5 @@
 substitutions:
+  variant_slug: "-b2"
   source_sensor_resistance: 3.3kOhm
 
 packages:
