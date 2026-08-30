@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-temp-1_beta
-  version: "25.2.23.1"
+  version: "26.8.27.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
 
 esphome:
@@ -12,7 +12,7 @@ esphome:
     name: "ApolloAutomation.TEMP-1_Beta"
     version: "${version}"
 
-  min_version: 2025.11.0
+  min_version: 2026.8.0
   on_boot:
     priority: 500
     then:
@@ -400,7 +400,7 @@ light:
     default_transition_length: 0s
     chipset: WS2812
     num_leds: 1
-    rgb_order: grb
+    channel_colors: GRB
     effects:
       - pulse:
           name: "Slow Pulse"
