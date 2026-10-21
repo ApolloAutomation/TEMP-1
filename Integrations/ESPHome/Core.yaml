@@ -633,7 +633,7 @@ script:
     then:
       - lambda: |-
           float current_temp = id(temp_probe_2).state;
-          if (isnan(current_temp)) {
+          if (isnan(current_temp) || current_temp == 85.0f) {
             return;
           }
           if (current_temp > id(max_temp_2)->state || current_temp < id(min_temp_2)->state) {
