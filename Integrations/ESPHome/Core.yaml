@@ -185,6 +185,36 @@ number:
     mode: box
 
   - platform: template
+    name: Max Probe 2 Temp
+    id: max_temp_2
+    restore_value: true
+    initial_value: 125.0
+    min_value: -55.0
+    max_value: 125.0
+    entity_category: "CONFIG"
+    unit_of_measurement: "°C"
+    optimistic: true
+    update_interval: never
+    step: 0.1
+    mode: box
+    disabled_by_default: true
+
+  - platform: template
+    name: Min Probe 2 Temp
+    id: min_temp_2
+    restore_value: true
+    initial_value: -55.0
+    min_value: -55.0
+    max_value: 125.0
+    entity_category: "CONFIG"
+    unit_of_measurement: "°C"
+    optimistic: true
+    update_interval: never
+    step: 0.1
+    mode: box
+    disabled_by_default: true
+
+  - platform: template
     name: Probe Temp Difference Threshold
     id: temp_diff_threshold
     restore_value: true
@@ -301,12 +331,19 @@ sensor:
         then:
           - lambda: |-
               id(tempRangeCheck).execute();
+
   - platform: dallas_temp
     name: "Temperature Probe 2"
     update_interval: 60s
     id: temp_probe_2
     index: 1
     disabled_by_default: true
+    on_value:
+      if:
+        condition:
+          switch.is_on: alarm_probe_2_outside_temp_range
+        then:
+          - script.execute: tempRangeCheck2
 
   - platform: dallas_temp
     name: "Temperature Probe 3"
@@ -458,6 +495,14 @@ switch:
     id: alarm_outside_temp_range    
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: template
+    name: "Alarm Probe 2 Outside Temp Range"
+    id: alarm_probe_2_outside_temp_range
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    disabled_by_default: true
+  
   - platform: template
     name: "Prevent Sleep"
     id: prevent_sleep
@@ -583,6 +628,21 @@ script:
           } else {
             ESP_LOGI("custom", "Temperature is within range: %f", current_temp);
           }
+
+  - id: tempRangeCheck2
+    then:
+      - lambda: |-
+          float current_temp = id(temp_probe_2).state;
+          if (isnan(current_temp)) {
+            return;
+          }
+          if (current_temp > id(max_temp_2)->state || current_temp < id(min_temp_2)->state) {
+            ESP_LOGI("custom", "Probe 2 temperature out of range: %f", current_temp);
+            id(rtttl_buzzer).play("siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e;");
+          } else {
+            ESP_LOGI("custom", "Probe 2 temperature is within range: %f", current_temp);
+          }
+  
   - id: testScript
     then:
       if: 
