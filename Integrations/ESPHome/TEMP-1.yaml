@@ -1,6 +1,7 @@
 substitutions:
   source_sensor_resistance: 100kOhm
-  firmware_update_manifest_url: https://apolloautomation.github.io/TEMP-1/firmware/manifest.json
+  ota_stable_manifest: "https://apolloautomation.github.io/TEMP-1/firmware/manifest.json"
+  ota_beta_manifest: "https://github.com/ApolloAutomation/TEMP-1/releases/download/beta-fw/manifest-temp-1.json"
 
 esphome:
   name: "apollo-temp-1"
@@ -11,7 +12,7 @@ esphome:
     name: "ApolloAutomation.TEMP-1"
     version: "${version}"
 
-  min_version: 2026.8.0
+  min_version: 2026.10.0
   on_boot:
     - priority: 800
       then:
@@ -93,17 +94,8 @@ dashboard_import:
 
 improv_serial:
 
-esp32_improv:
+improv_ble:
   authorizer: none
-
-ota:
-  - platform: esphome
-    id: ota_esphome
-  - platform: http_request
-    id: ota_managed
-
-http_request:
-  verify_ssl: true
 
 safe_mode:
 
@@ -111,15 +103,7 @@ web_server:
   port: 80
   version: 3
 
-update:
-  - platform: http_request
-    id: firmware_update
-    name: Firmware Update
-    source: ${firmware_update_manifest_url}
-
 wifi:
-  on_connect:
-    - component.update: firmware_update
   id: wifi_1
   ap:
     ssid: "Apollo TEMP1 Hotspot"
@@ -130,3 +114,4 @@ packages:
   core: !include Core.yaml
   nonbattery: !include NonBattery.yaml
   resistance: !include Resistance.yaml
+  update: !include Update.yaml
