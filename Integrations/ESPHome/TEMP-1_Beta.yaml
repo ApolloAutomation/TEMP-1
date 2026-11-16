@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-temp-1_beta
-  version: "26.8.27.1"
+  version: "26.11.15.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
 
 esphome:
@@ -12,53 +12,65 @@ esphome:
     name: "ApolloAutomation.TEMP-1_Beta"
     version: "${version}"
 
-  min_version: 2026.8.0
+  min_version: 2026.10.0
   on_boot:
-    priority: 500
-    then:
-      - text_sensor.template.publish:
-          id: apollo_firmware_version
-          state: "${version}"
-      - switch.turn_on: accessory_power
-      - lambda: |-
-          id(deep_sleep_1).set_run_duration(id(deep_sleep_run_duration).state * 1000);
-          id(deep_sleep_1).set_sleep_duration(id(deep_sleep_sleep_duration).state * 60 * 60 * 1000);
-      - if:
-          condition:
-            or:
-              - binary_sensor.is_on: ota_mode
-              - switch.is_on: prevent_sleep
-          then:
-             - lambda: |- 
-                ESP_LOGW("Apollo", "Preventing Deep Sleep Due To OTA On Boot");
-                id(deep_sleep_1).prevent_deep_sleep(); 
+    - priority: 500
+      then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
+        - switch.turn_on: accessory_power
+        - lambda: |-
+            id(deep_sleep_1).set_run_duration(id(deep_sleep_run_duration).state * 1000);
+            id(deep_sleep_1).set_sleep_duration(id(deep_sleep_sleep_duration).state * 60 * 60 * 1000);
+        - if:
+            condition:
+              or:
+                - binary_sensor.is_on: ota_mode
+                - switch.is_on: prevent_sleep
+            then:
+               - lambda: |- 
+                  ESP_LOGW("Apollo", "Preventing Deep Sleep Due To OTA On Boot");
+                  id(deep_sleep_1).prevent_deep_sleep(); 
 
-      - if:
-          condition:
-            switch.is_on: notify_only_outside_temp_difference
-          then:
-            - logger.log: "Apollo Automation: Notify Only Outside Temp Difference"
-            - delay: 2s
-            - if: # Check If Temp Probe Is Outside Threshold
-                condition:
-                  - lambda: |-
-                      return std::abs(id(temp_probe).state - id(last_temp)) > id(temp_diff_threshold)->state;
-                then: # If So Then Turn On Wifi To Update
-                  - logger.log: "Apollo Automation: Outside Temp Change Detected"
-                  - wifi.enable:
-                  - lambda: |-
-                      id(last_temp) = id(temp_probe).state;
-                else: # If Not Then Check OTA And Sleep
-                  - if:
-                      condition:
-                        and:
-                          - binary_sensor.is_off: ota_mode
-                          - switch.is_off: prevent_sleep
-                      then:
-                      - switch.turn_off: accessory_power
-                      - deep_sleep.enter:
-                          id: deep_sleep_1
-                  
+        - if:
+            condition:
+              switch.is_on: notify_only_outside_temp_difference
+            then:
+              - logger.log: "Apollo Automation: Notify Only Outside Temp Difference"
+              - delay: 2s
+              - if: # Check If Temp Probe Is Outside Threshold
+                  condition:
+                    - lambda: |-
+                        return std::abs(id(temp_probe).state - id(last_temp)) > id(temp_diff_threshold)->state;
+                  then: # If So Then Turn On Wifi To Update
+                    - logger.log: "Apollo Automation: Outside Temp Change Detected"
+                    - wifi.enable:
+                    - lambda: |-
+                        id(last_temp) = id(temp_probe).state;
+                  else: # If Not Then Check OTA And Sleep
+                    - if:
+                        condition:
+                          and:
+                            - binary_sensor.is_off: ota_mode
+                            - switch.is_off: prevent_sleep
+                        then:
+                        - switch.turn_off: accessory_power
+                        - deep_sleep.enter:
+                            id: deep_sleep_1
+    # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
+    # scanning matches the switch state restored from flash.
+    - priority: -300
+      then:
+        - if:
+            condition:
+              switch.is_on: bluetooth_proxy_switch
+            then:
+              - esp32_ble_tracker.start_scan:
+                  continuous: true
+            else:
+              - esp32_ble_tracker.stop_scan:
+
   on_shutdown:
     - light.turn_off: rgb_light
     - switch.turn_off: accessory_power
@@ -69,7 +81,7 @@ dashboard_import:
 
 improv_serial:
 
-esp32_improv:
+improv_ble:
   authorizer: none
 
 ota:
@@ -80,12 +92,29 @@ ota:
 
 http_request:
   verify_ssl: true
+  # GitHub release-asset downloads answer with a redirect carrying a
+  # ~3.6 KB Content-Security-Policy header; each header line must fit
+  # this buffer or the request fails with "HTTP_CLIENT: Out of buffer".
+  buffer_size_rx: 5120
+  # The redirect target is a signed URL with a ~850-char query string; the
+  # follow-up request line must fit the TX buffer or esp_http_client_open
+  # fails with "Out of buffer" before sending anything.
+  buffer_size_tx: 2048
+
+esp32_ble_tracker:
+  id: ble_tracker
+  scan_parameters:
+    continuous: true
+
+bluetooth_proxy:
 
 safe_mode:
 
 
 wifi:
   id: wifi_1
+  # Keeps today's no-reboot on lost Wi-Fi; 2026.11 drops the AP exemption
+  reboot_timeout: 0s
   ap:
     ssid: "Apollo TEMP1 Hotspot"
 
@@ -101,6 +130,7 @@ esp32:
       enable_lwip_assert: false
 
 api:
+  encryption:
   actions:
     - action: play_buzzer
       variables:
@@ -144,6 +174,18 @@ globals:
     type: float
     restore_value: yes
     initial_value: '0.0'
+  - id: runTest
+    restore_value: no
+    type: bool
+    initial_value: "false"
+  - id: testCycleCount
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: aht20Passed
+    restore_value: no
+    type: bool
+    initial_value: "false"
 
 captive_portal:
 
@@ -310,9 +352,10 @@ binary_sensor:
         - lambda: |-
             if (millis() - id(button_press_timestamp) >= 10000) {
               // Remove Wifi
+              id(prevent_sleep).turn_on();
               id(factory_reset_switch).turn_on();
             }
-            else if (millis() - id(button_press_timestamp) >= 1000) {
+            else if (millis() - id(button_press_timestamp) >= 3000) {
               //Turn Prevent Sleep On
               id(prevent_sleep).turn_on();
               //Prevent Sleep
@@ -321,6 +364,10 @@ binary_sensor:
             else {
               // StatusCheck
               id(statusCheck).execute();
+              delay(3000);
+              id(testCycleCount) = 0;
+              id(runTest) = true;
+              id(testScript).execute();
             }
   - platform: homeassistant
     name: "OTA Mode"
@@ -372,6 +419,7 @@ sensor:
     id: aht20
     temperature:
       name: "Board Temperature"
+      id: aht_temperature
       filters:
         - lambda: return x - id(aht_temperature_offset).state;
     humidity:
@@ -472,7 +520,25 @@ switch:
     optimistic: true
     entity_category: "config"
 
+  - platform: template
+    name: "Bluetooth Proxy"
+    id: bluetooth_proxy_switch
+    icon: mdi:bluetooth
+    entity_category: "config"
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    on_turn_on:
+      - esp32_ble_tracker.start_scan:
+          continuous: true
+    on_turn_off:
+      - esp32_ble_tracker.stop_scan:
 
+text_sensor:
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    update_interval: never
+    entity_category: "diagnostic"
 
 script:
   - id: statusCheck
@@ -522,3 +588,64 @@ script:
             - rtttl.play:
                 rtttl: "return siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e;"
 
+  - id: testScript
+    then:
+      if: 
+        condition:
+          - lambda: "return id(runTest) == true;"
+        then:
+          - lambda: "id(runTest) = false;"
+          - lambda: "id(testCycleCount) = 0;"
+          - switch.turn_on: accessory_power
+          - while:
+              condition:
+                - lambda: "return id(testCycleCount) < 5;"
+              then:
+                - if:
+                    condition:
+                      - lambda: "return id(aht20Passed) == false;"
+                    then:
+                      - if:
+                          condition:
+                            - lambda: "return id(aht_temperature).state > 15;"
+                          then:
+                            - lambda: "id(aht20Passed) = true;"
+                - lambda: "id(runTest) = false;"
+                - delay: 1s
+                - lambda: "id(testCycleCount) += 1;"
+
+          #Check If Test Passed To Trigger Lights
+          - if:
+              condition:
+                - lambda: "return id(aht20Passed);"
+              then:
+                - lambda: "id(runTest) = false;"
+                - light.turn_on:
+                    id: rgb_light
+                    red: 0%
+                    green: 100%
+                    blue: 0%
+                - delay: 5s
+                - light.turn_on:
+                    id: rgb_light
+                    red: 0%
+                    green: 0%
+                    blue: 0%
+                - light.turn_off:
+                    id: rgb_light
+                
+              else:
+                - lambda: "id(runTest) = false;"
+                - light.turn_on:
+                    id: rgb_light
+                    red: 100%
+                    green: 0%
+                    blue: 0%
+                - delay: 5s
+                - light.turn_on:
+                    id: rgb_light
+                    red: 0%
+                    green: 0%
+                    blue: 0%
+                - light.turn_off:
+                    id: rgb_light
