@@ -12,7 +12,7 @@ esphome:
     name: "ApolloAutomation.TEMP-1B"
     version: "${version}"
 
-  min_version: 2026.10.0
+  min_version: 2026.10.1
   on_boot:
     - priority: 500
       then:
