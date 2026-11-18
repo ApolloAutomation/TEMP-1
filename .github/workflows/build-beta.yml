@@ -1,0 +1,30 @@
+name: Build and Publish Beta
+
+on:
+  push:
+    branches: [beta]
+    paths:
+      - 'Integrations/ESPHome/**'
+      # A push that only changes this file must rebuild too
+      - '.github/workflows/build-beta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-beta-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  beta:
+    permissions:
+      contents: write
+    uses: ApolloAutomation/Workflows/.github/workflows/build-beta.yml@main
+    with:
+      # Keys match the ota_beta_manifest names devices fetch (manifest-<key>.json)
+      variants: >-
+        [{"key": "temp-1",     "yaml": "Integrations/ESPHome/TEMP-1.yaml",     "name": "firmware-temp-1"},
+         {"key": "temp-1b",    "yaml": "Integrations/ESPHome/TEMP-1B.yaml",    "name": "firmware-temp-1b"},
+         {"key": "temp-1-r2",  "yaml": "Integrations/ESPHome/TEMP-1_R2.yaml",  "name": "firmware-temp-1-r2"},
+         {"key": "temp-1b-r2", "yaml": "Integrations/ESPHome/TEMP-1B_R2.yaml", "name": "firmware-temp-1b-r2"}]
